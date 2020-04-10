@@ -19,11 +19,13 @@ with Ada.Tags;  use Ada.Tags;
 with Ada.Tags.Generic_Dispatching_Constructor;
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Wide_Unbounded;
+with Interfaces;
 
 with GNATCOLL.JSON;    use GNATCOLL.JSON;
 with LSP.JSON_Streams;
 
 package body LSP.Messages is
+   use type Interfaces.Integer_64;
 
    procedure Read_If_String
     (Stream : in out LSP.JSON_Streams.JSON_Stream'Class;
@@ -378,15 +380,13 @@ package body LSP.Messages is
          if V.Is_Server_Side then
             for J in V.As_Flags'Range loop
                if V.As_Flags (J) then
-                  JS.Write
-                    (GNATCOLL.JSON.Create (AlsReferenceKind_Map (J).all));
+                  JS.Write_String (AlsReferenceKind_Map (J).all);
                end if;
             end loop;
 
          else
             for K of V.As_Strings loop
-               JS.Write
-                 (GNATCOLL.JSON.Create (LSP.Types.To_UTF_8_String (K)));
+               JS.Write_String (K);
             end loop;
          end if;
 
@@ -3683,7 +3683,7 @@ package body LSP.Messages is
       end Image;
 
    begin
-      JS.Write (GNATCOLL.JSON.Create (Image (V)));
+      JS.Write_String (Image (V));
    end Write_CodeActionKind;
 
    -----------------------------------------------
@@ -3996,9 +3996,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(CompletionItemKind'Pos (V)) + 1));
+      JS.Write_Integer (CompletionItemKind'Pos (V) + 1);
    end Write_CompletionItemKind;
 
    -----------------------------
@@ -4012,9 +4010,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(CompletionItemTag'Pos (V)) + 1));
+      JS.Write_Integer (CompletionItemTag'Pos (V) + 1);
    end Write_CompletionItemTag;
 
    ------------------------------------
@@ -4189,9 +4185,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(DiagnosticSeverity'Pos (V)) + 1));
+      JS.Write_Integer (DiagnosticSeverity'Pos (V) + 1);
    end Write_DiagnosticSeverity;
 
    -------------------------
@@ -4205,9 +4199,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(DiagnosticTag'Pos (V)) + 1));
+      JS.Write_Integer (DiagnosticTag'Pos (V) + 1);
    end Write_DiagnosticTag;
 
    --------------------------------
@@ -4417,10 +4409,10 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Map : constant array (DocumentHighlightKind) of Integer :=
+      Map : constant array (DocumentHighlightKind) of Interfaces.Integer_64 :=
         (Text => 1, Read => 2, Write => 3);
    begin
-      JS.Write (GNATCOLL.JSON.Create (Map (V)));
+      JS.Write_Integer (Map (V));
    end Write_DocumentHighlightKind;
 
    ------------------------------------------
@@ -4719,7 +4711,7 @@ package body LSP.Messages is
          end case;
       end Image;
    begin
-      JS.Write (GNATCOLL.JSON.Create (Image));
+      JS.Write_String (Image);
    end Write_FailureHandlingKind;
 
    ------------------------------------------
@@ -4892,9 +4884,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(InsertTextFormat'Pos (V)) + 1));
+      JS.Write_Integer (InsertTextFormat'Pos (V) + 1);
    end Write_InsertTextFormat;
 
    --------------------
@@ -4955,7 +4945,7 @@ package body LSP.Messages is
    begin
       case V.Kind is
          when Empty_Vector_Kind =>
-            JS.Write (GNATCOLL.JSON.JSON_Null);
+            JS.Write_Null;
          when Location_Vector_Kind =>
             Location_Vector'Write (S, V.Locations);
          when LocationLink_Vector_Kind =>
@@ -4992,7 +4982,7 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_String then
-         JS.Write (GNATCOLL.JSON.Create (To_UTF_8_String (V.value)));
+         JS.Write_String (V.value);
       else
          JS.Start_Object;
          Write_String (JS, +"language", V.language);
@@ -5049,9 +5039,9 @@ package body LSP.Messages is
    begin
       case V is
          when plaintext =>
-            JS.Write (GNATCOLL.JSON.Create ("plaintext"));
+            JS.Write_String ("plaintext");
          when markdown =>
-            JS.Write (GNATCOLL.JSON.Create ("markdown"));
+            JS.Write_String ("markdown");
       end case;
    end Write_MarkupKind;
 
@@ -5108,7 +5098,7 @@ package body LSP.Messages is
      Item   : Boolean) is
    begin
       Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-      Stream.Write (GNATCOLL.JSON.Create (Item));
+      Stream.Write_Boolean (Item);
    end Write_Boolean;
 
    ----------------------------
@@ -5122,7 +5112,7 @@ package body LSP.Messages is
    begin
       if Item.Is_Set then
          Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         Stream.Write (GNATCOLL.JSON.Create (Item.Value));
+         Stream.Write_Boolean (Item.Value);
       end if;
    end Write_Optional_Boolean;
 
@@ -5140,7 +5130,7 @@ package body LSP.Messages is
          Write_Number (Stream, Key, Item.Value);
       elsif Write_Null then
          Stream.Key (Ada.Strings.Wide_Unbounded.Unbounded_Wide_String (Key));
-         Stream.Write (GNATCOLL.JSON.Create);
+         Stream.Write_Null;
       end if;
    end Write_Optional_Number;
 
@@ -5221,12 +5211,11 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_String then
-         JS.Write
-           (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V.String)));
+         JS.Write_String (V.String);
       else
          JS.Start_Array;
-         JS.Write (GNATCOLL.JSON.Create (Integer (V.From)));
-         JS.Write (GNATCOLL.JSON.Create (Integer (V.Till)));
+         JS.Write_Integer (Interfaces.Integer_64 (V.From));
+         JS.Write_Integer (Interfaces.Integer_64 (V.Till));
          JS.End_Array;
       end if;
    end Write_Parameter_Label;
@@ -5276,11 +5265,12 @@ package body LSP.Messages is
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
       if V.Is_Boolean then
-         JS.Write (GNATCOLL.JSON.Create (V.Bool));
+         JS.Write_Boolean (V.Bool);
       elsif V.Options.Is_Set then
          Optional_TSW_RegistrationOptions'Write (S, V.Options);
       else
-         JS.Write (GNATCOLL.JSON.Create_Object);  --  Write {}
+         JS.Start_Object;  --  Write an empty JSON object
+         JS.End_Object;
       end if;
    end Write_Provider_Options;
 
@@ -5302,7 +5292,8 @@ package body LSP.Messages is
       JS.Key ("diagnostics");
 
       if V.diagnostics.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
+         JS.Start_Array;  --  Write an empty JSON array
+         JS.End_Array;
       else
          Diagnostic_Vector'Write (S, V.diagnostics);
       end if;
@@ -5362,7 +5353,7 @@ package body LSP.Messages is
    begin
       JS.Start_Object;
       JS.Key ("includeDeclaration");
-      JS.Write (GNATCOLL.JSON.Create (V.includeDeclaration));
+      JS.Write_Boolean (V.includeDeclaration);
       JS.End_Object;
    end Write_ReferenceContext;
 
@@ -5512,7 +5503,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write (GNATCOLL.JSON.Create (To_String (V)));
+      JS.Write_String (To_String (V));
    end Write_ResourceOperationKind;
 
    ---------------------------
@@ -5531,7 +5522,7 @@ package body LSP.Messages is
 
       if not V.Is_Error then
          JS.Key ("result");
-         JS.Write (GNATCOLL.JSON.JSON_Null);
+         JS.Write_Null;
       end if;
 
       JS.End_Object;
@@ -5677,7 +5668,8 @@ package body LSP.Messages is
 
       JS.Key ("signatures");
       if V.signatures.Is_Empty then
-         JS.Write (GNATCOLL.JSON.Create (GNATCOLL.JSON.Empty_Array));
+         JS.Start_Array;  --  Write an empty JSON array
+         JS.End_Array;
       else
          JS.Start_Array;
          for Item of V.signatures loop
@@ -5820,8 +5812,7 @@ package body LSP.Messages is
    begin
       case V.Is_String is
          when True =>
-            JS.Write
-              (GNATCOLL.JSON.Create (To_UTF_8_Unbounded_String (V.String)));
+            JS.Write_String (V.String);
          when False =>
             MarkupContent'Write (S, V.Content);
       end case;
@@ -5840,8 +5831,7 @@ package body LSP.Messages is
       Stream.Start_Array;
 
       for J in 1 .. Item.Last_Index loop
-         Stream.Write
-           (GNATCOLL.JSON.Create (To_UTF_8_String (Item.Element (J))));
+         Stream.Write_String (Item.Element (J));
       end loop;
 
       Stream.End_Array;
@@ -5880,9 +5870,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(SymbolKind'Pos (V)) + 1));
+      JS.Write_Integer (SymbolKind'Pos (V) + 1);
    end Write_SymbolKind;
 
    --------------------------
@@ -5896,9 +5884,7 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
    begin
-      JS.Write
-        (GNATCOLL.JSON.Create
-           (Integer'(Als_Visibility'Pos (V)) + 1));
+      JS.Write_Integer (Als_Visibility'Pos (V) + 1);
    end Write_Als_Visibility;
 
    -------------------------
@@ -6148,10 +6134,10 @@ package body LSP.Messages is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
 
-      Map : constant array (TextDocumentSyncKind) of Integer :=
+      Map : constant array (TextDocumentSyncKind) of Interfaces.Integer_64 :=
         (None => 0, Full => 1, Incremental => 2);
    begin
-      JS.Write (GNATCOLL.JSON.Create (Map (V)));
+      JS.Write_Integer (Map (V));
    end Write_TextDocumentSyncKind;
 
    -----------------------------------
@@ -6222,8 +6208,8 @@ package body LSP.Messages is
    is
       JS : LSP.JSON_Streams.JSON_Stream'Class renames
         LSP.JSON_Streams.JSON_Stream'Class (S.all);
-      Result : LSP_Number := 0;
-      Mask   : LSP_Number := 1;
+      Result : Interfaces.Integer_64 := 0;
+      Mask   : Interfaces.Integer_64 := 1;
    begin
       if V /= Default_WatchKind_Set then
          for J in WatchKind loop
@@ -6234,7 +6220,7 @@ package body LSP.Messages is
             Mask := Mask * 2;
          end loop;
 
-         JS.Write (GNATCOLL.JSON.Create (Result));
+         JS.Write_Integer (Result);
       end if;
    end Write_WatchKind_Set;
 
@@ -6553,7 +6539,7 @@ package body LSP.Messages is
       --  readers.
 
       if not V.workDoneProgress.Is_Set then
-         JS.Write (GNATCOLL.JSON.Create (True));
+         JS.Write_Boolean (True);
       else
          JS.Start_Object;
          Write_Optional_Boolean (JS, +"workDoneProgress", V.workDoneProgress);
